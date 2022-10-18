@@ -1,4 +1,4 @@
-# xBrowserSync Serverless API
+# xBrowserSync Serverless API on AWS
 
 This is a simple implementation of [xBrowserSync API](https://github.com/xbrowsersync/api) using AWS Serverless technologies. All the components that's used here are on-demand hence you pay only for what you use.
 
