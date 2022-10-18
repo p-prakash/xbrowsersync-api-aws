@@ -135,19 +135,19 @@ Resources:
                           'lastUpdated': curr_time,
                           'version': vers
                       }
-                  else:
-                      print('DynamoDB responded with non-200 status code')
-                      print(ddb_res)
-                      return {
-                          "statusCode": 500,
-                          "body": json.dumps('DynamoDB responded with non-200 status code. Check CloudWatch Logs for details')
-                      }
+
+                  print('DynamoDB responded with non-200 status code')
+                  print(ddb_res)
+                  return {
+                      "statusCode": 500,
+                      "body": json.dumps({"UnspecifiedException": "DynamoDB responded with non-200 status code. Check CloudWatch Logs for details"})
+                  }
               except:
                   print('Failed to update the DynamoDB table with id ' + uniq_id)
                   traceback.print_exc()
                   return {
                           "statusCode": 500,
-                          "body": json.dumps('Failed with exception. Check CloudWatch Logs for details')
+                          "body": json.dumps({"UnspecifiedException": "Failed with exception. Check CloudWatch Logs for details"})
                       }
       Description: xBrowserSync Create Bookmark Function
       Handler: index.create_bookmark
@@ -165,7 +165,6 @@ Resources:
       Code:
         ZipFile: |
           import boto3
-          import uuid
           import os
           import json
           import traceback
@@ -184,7 +183,7 @@ Resources:
                       "isBase64Encoded": false,
                       "statusCode": 413,
                       "headers": {"Access-Control-Allow-Origin": "*"},
-                      "body": json.dumps('SyncDataLimitExceededException: Sync data limit exceeded')
+                      "body": json.dumps({'SyncDataLimitExceededException': 'Sync data limit exceeded'})
                   }
 
               try:
@@ -212,30 +211,29 @@ Resources:
                                   "headers": {"Access-Control-Allow-Origin": "*"},
                                   "body": json.dumps({'lastUpdated': curr_time})
                               }
-                          else:
-                              print('DynamoDB responded with non-200 status code')
-                              print(ddb_res)
-                              return {
-                                  "isBase64Encoded": False,
-                                  "statusCode": 500,
-                                  "headers": {"Access-Control-Allow-Origin": "*"},
-                                  "body": json.dumps({"UnspecifiedException": "DynamoDB responded with non-200 status code. Check CloudWatch Logs for details"})
-                              }
-                      else:
+
+                          print('DynamoDB responded with non-200 status code')
+                          print(ddb_res)
                           return {
                               "isBase64Encoded": False,
-                              "statusCode": 409,
+                              "statusCode": 500,
                               "headers": {"Access-Control-Allow-Origin": "*"},
-                              "body": json.dumps({"SyncConflictException": "A sync conflict was detected"})
+                              "body": json.dumps({"UnspecifiedException": "DynamoDB responded with non-200 status code. Check CloudWatch Logs for details"})
                           }
 
-                  else:
                       return {
                           "isBase64Encoded": False,
-                          "statusCode": 401,
+                          "statusCode": 409,
                           "headers": {"Access-Control-Allow-Origin": "*"},
-                          "body": json.dumps({"InvalidSyncIdException": "Invalid sync ID"})
+                          "body": json.dumps({"SyncConflictException": "A sync conflict was detected"})
                       }
+
+                  return {
+                      "isBase64Encoded": False,
+                      "statusCode": 401,
+                      "headers": {"Access-Control-Allow-Origin": "*"},
+                      "body": json.dumps({"InvalidSyncIdException": "Invalid sync ID"})
+                  }
 
               except:
                   print('Failed to access the DynamoDB table with id ' + curr_id)
@@ -244,7 +242,7 @@ Resources:
                           "isBase64Encoded": False,
                           "statusCode": 500,
                           "headers": {"Access-Control-Allow-Origin": "*"},
-                          "body": json.dumps({"UnspecifiedExceptio": "Failed with exception. Check CloudWatch Logs for details"})
+                          "body": json.dumps({"UnspecifiedException": "Failed with exception. Check CloudWatch Logs for details"})
                       }
       Description: xBrowserSync Update Bookmark Function
       Handler: index.update_bookmark
