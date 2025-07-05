@@ -104,6 +104,8 @@ Resources:
   xBrowserSyncCreateFunction:
     Type: "AWS::Lambda::Function"
     Properties:
+      Architectures:
+        - arm64
       Code:
         ZipFile: |
           import boto3
@@ -152,7 +154,7 @@ Resources:
       Description: xBrowserSync Create Bookmark Function
       Handler: index.create_bookmark
       Role : !GetAtt xBrowserSyncLambdaRole.Arn
-      Runtime: python3.8
+      Runtime: python3.13
       ReservedConcurrentExecutions: 10
       Timeout: 20
       Environment:
@@ -162,6 +164,8 @@ Resources:
   xBrowserSyncUpdateFunction:
     Type: "AWS::Lambda::Function"
     Properties:
+      Architectures:
+        - arm64
       Code:
         ZipFile: |
           import boto3
@@ -248,7 +252,7 @@ Resources:
       Handler: index.update_bookmark
       Role : !GetAtt xBrowserSyncLambdaRole.Arn
       ReservedConcurrentExecutions: 20
-      Runtime: python3.8
+      Runtime: python3.13
       Timeout: 30
       Environment:
         Variables:
@@ -601,7 +605,28 @@ Resources:
                 passthroughBehavior: "when_no_match"
                 type: "mock"
 
+  xBrowserSyncAPICloudWatchRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - apigateway.amazonaws.com
+            Action: 'sts:AssumeRole'
+      Path: /
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs
+
+  xBrowserSyncAPIAccount:
+    Type: 'AWS::ApiGateway::Account'
+    Properties:
+      CloudWatchRoleArn: !GetAtt xBrowserSyncAPICloudWatchRole.Arn
+
   xBrowserSyncAPIDeployment:
+    DependsOn: xBrowserSyncAPIAccount
     Type: 'AWS::ApiGateway::Deployment'
     Properties:
       RestApiId: !Ref xBrowserSyncAPI
